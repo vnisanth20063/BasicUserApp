@@ -1,0 +1,24 @@
+{
+  "name": "basic-user-app-backend",
+  "version": "1.0.0",
+  "description": "Beginner-friendly Node.js Express REST API for BasicUserApp",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": [
+    "flutter",
+    "express",
+    "rest-api",
+    "beginner"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2"
+  }
+}
+

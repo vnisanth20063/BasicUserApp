@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>BasicUserApp — System Architecture & Complete Logic Guide</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+    @page {
+      size: A4;
+      margin: 18mm 16mm 18mm 16mm;
+      @bottom-right {
+        content: counter(page);
+        font-family: 'Inter', sans-serif;
+        font-size: 9pt;
+        color: #64748b;
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      color: #1e293b;
+      line-height: 1.6;
+      font-size: 10.5pt;
+      margin: 0;
+      padding: 0;
+      background-color: #ffffff;
+    }
+
+    .cover {
+      page-break-after: always;
+      padding-top: 40px;
+      text-align: left;
+      border-bottom: 3px solid #10b981;
+      padding-bottom: 30px;
+      margin-bottom: 30px;
+    }
+
+    .badge {
+      display: inline-block;
+      background: #d1fae5;
+      color: #065f46;
+      font-weight: 700;
+      font-size: 9pt;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: 26pt;
+      font-weight: 800;
+      color: #0f172a;
+      line-height: 1.2;
+      margin: 0 0 12px 0;
+      letter-spacing: -0.03em;
+    }
+
+    .subtitle {
+      font-size: 13pt;
+      color: #475569;
+      margin-bottom: 24px;
+      font-weight: 400;
+      line-height: 1.5;
+    }
+
+    .meta-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 14px 18px;
+      font-size: 9.5pt;
+      color: #334155;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .meta-item strong {
+      color: #0f172a;
+    }
+
+    h2 {
+      font-size: 16pt;
+      font-weight: 700;
+      color: #0f172a;
+      border-bottom: 1.5px solid #e2e8f0;
+      padding-bottom: 6px;
+      margin-top: 28px;
+      margin-bottom: 14px;
+      page-break-after: avoid;
+      letter-spacing: -0.02em;
+    }
+
+    h3 {
+      font-size: 12pt;
+      font-weight: 600;
+      color: #047857;
+      margin-top: 20px;
+      margin-bottom: 8px;
+      page-break-after: avoid;
+    }
+
+    p {
+      margin-top: 0;
+      margin-bottom: 12px;
+      text-align: justify;
+    }
+
+    code {
+      font-family: 'JetBrains Mono', Consolas, Monaco, monospace;
+      font-size: 9pt;
+      background: #f1f5f9;
+      color: #0f766e;
+      padding: 2px 5px;
+      border-radius: 4px;
+      border: 1px solid #e2e8f0;
+    }
+
+    pre {
+      font-family: 'JetBrains Mono', Consolas, Monaco, monospace;
+      font-size: 8.5pt;
+      background: #0f172a;
+      color: #f8fafc;
+      padding: 12px 14px;
+      border-radius: 6px;
+      overflow-x: auto;
+      line-height: 1.45;
+      margin: 12px 0 16px 0;
+      page-break-inside: avoid;
+    }
+
+    pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+      border: none;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0 18px 0;
+      font-size: 9.5pt;
+      page-break-inside: avoid;
+    }
+
+    th, td {
+      border: 1px solid #cbd5e1;
+      padding: 8px 12px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f1f5f9;
+      color: #0f172a;
+      font-weight: 600;
+    }
+
+    tr:nth-child(even) td {
+      background-color: #f8fafc;
+    }
+
+    .callout {
+      border-left: 4px solid #10b981;
+      background: #ecfdf5;
+      padding: 12px 16px;
+      border-radius: 0 8px 8px 0;
+      margin: 14px 0;
+      page-break-inside: avoid;
+    }
+
+    .callout-title {
+      font-weight: 700;
+      color: #065f46;
+      font-size: 10pt;
+      margin-bottom: 4px;
+    }
+
+    .callout-body {
+      font-size: 9.5pt;
+      color: #064e3b;
+      margin: 0;
+    }
+
+    .callout-warning {
+      border-left-color: #f59e0b;
+      background: #fffbeb;
+    }
+
+    .callout-warning .callout-title {
+      color: #b45309;
+    }
+
+    .callout-warning .callout-body {
+      color: #92400e;
+    }
+
+    .flow-step {
+      display: flex;
+      margin-bottom: 12px;
+      page-break-inside: avoid;
+    }
+
+    .flow-num {
+      flex: 0 0 28px;
+      height: 28px;
+      background: #10b981;
+      color: white;
+      font-weight: bold;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 12px;
+      font-size: 10pt;
+    }
+
+    .flow-text {
+      flex: 1;
+    }
+
+    .flow-title {
+      font-weight: 700;
+      color: #0f172a;
+      font-size: 10pt;
+      margin-bottom: 2px;
+    }
+
+    .flow-desc {
+      font-size: 9.5pt;
+      color: #475569;
+      margin: 0;
+    }
+
+    .page-break {
+      page-break-before: always;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Cover Page / Header -->
+  <div class="cover">
+    <div class="badge">Architecture & Engineering Specification</div>
+    <h1>BasicUserApp</h1>
+    <div class="subtitle">Complete Technical Logic, Security Analysis & Architectural Design Document</div>
+    <div class="meta-box">
+      <div class="meta-item"><strong>Platform:</strong> Flutter (Dart 3.13) + Node.js (v24 ES Modules)</div>
+      <div class="meta-item"><strong>Target OS:</strong> Android (Release APK built & signed)</div>
+      <div class="meta-item"><strong>Theme:</strong> Minimalist White with Emerald-Green (#10B981)</div>
+      <div class="meta-item"><strong>Persistence:</strong> Thread-Safe Atomic JSON File Storage</div>
+    </div>
+  </div>
+
+  <!-- Section 1 -->
+  <h2>1. System Architecture Overview</h2>
+  <p>
+    <strong>BasicUserApp</strong> is engineered as a decoupled, client-server mobile solution. The mobile client (Flutter) provides an interactive user registration interface and dynamic user directory, communicating over RESTful HTTP endpoints with an Express.js backend.
+  </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Layer</th>
+        <th>Technologies</th>
+        <th>Core Responsibilities</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Client (Frontend)</strong></td>
+        <td>Flutter 3.47, Dart 3.13, Material 3, HTTP Client</td>
+        <td>Input collection, client-side validation, UI state machine, async networking, in-app API switching.</td>
+      </tr>
+      <tr>
+        <td><strong>Networking</strong></td>
+        <td>RESTful JSON over HTTP, CORS enabled</td>
+        <td>Payload serialization, latency timeouts, status code mapping, network boundary routing.</td>
+      </tr>
+      <tr>
+        <td><strong>Server (Backend)</strong></td>
+        <td>Node.js 24, Express.js 4, ES Modules</td>
+        <td>Schema validation, duplicate prevention, concurrency queue mutex, atomic persistence.</td>
+      </tr>
+      <tr>
+        <td><strong>Data Storage</strong></td>
+        <td>Atomic JSON File Store (<code>users.json</code>)</td>
+        <td>Safe file persistence, race-condition protected write cycles, data initialization.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- Section 2 -->
+  <h2>2. Detailed Backend Logic (Node.js & Express)</h2>
+
+  <h3>2.1 Storage Auto-Initialization</h3>
+  <p>
+    When the server boots, <code>initializeDataStorage()</code> runs before the server accepts traffic. It recursively ensures that the <code>backend/data/</code> directory exists and verifies the presence of <code>users.json</code>. If absent, an empty JSON array <code>[]</code> is initialized. This eliminates cold-start configuration errors.
+  </p>
+
+  <h3>2.2 Concurrency Queue & Atomic File Updates</h3>
+  <p>
+    Traditional file systems lack built-in row-level locking. To safely manage multiple incoming registration requests without corrupting data, two specific mechanisms are deployed:
+  </p>
+
+  <div class="callout">
+    <div class="callout-title">1. In-Memory Promise Chain (Sequential Lock)</div>
+    <div class="callout-body">
+      A promise-based mutex <code>withFileLock(operation)</code> queues all read-modify-write tasks sequentially. Even if multiple mobile clients submit registrations at the exact same millisecond, the operations are processed one after another in order.
+    </div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-title">2. Atomic Temporary File Renaming</div>
+    <div class="callout-body">
+      Instead of writing directly to <code>users.json</code>, the backend writes to a unique temporary file: <code>users.json.tmp.&lt;timestamp&gt;</code>. Once writing is fully completed, <code>fs.rename()</code> atomically overwrites the main file. This ensures that a server crash or power interruption never leaves a corrupted, half-written JSON file.
+    </div>
+  </div>
+
+  <h3>2.3 Input Validation & Duplicate Checking</h3>
+  <p>Every registration request hitting <code>POST /api/users</code> undergoes strict server-side validation:</p>
+  <ul>
+    <li><strong>Full Name:</strong> Checked for existence, non-whitespace content, and a minimum length of 2 characters.</li>
+    <li><strong>Email Format:</strong> Validated against standard RFC-compliant regex <code>/^[^\s@]+@[^\s@]+\.[^\s@]+$/</code>.</li>
+    <li><strong>Phone Number:</strong> Validated against pattern <code>/^\+?[0-9\s\-()]{7,20}$/</code> ensuring at least 7 digits.</li>
+    <li><strong>Duplicate Prevention:</strong> Case-insensitive comparison against existing records. If <code>jane@example.com</code> exists, attempting to register <code>JANE@EXAMPLE.COM</code> is rejected with an HTTP 400 error.</li>
+  </ul>
+
+  <h3>2.4 Endpoint Specifications</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Method & Route</th>
+        <th>Success Code</th>
+        <th>Description & Response Body</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>GET /api/health</code></td>
+        <td>200 OK</td>
+        <td>Returns server uptime status and current ISO timestamp.</td>
+      </tr>
+      <tr>
+        <td><code>POST /api/users</code></td>
+        <td>201 Created</td>
+        <td>Validates payload, creates unique ID, saves record, returns created user.</td>
+      </tr>
+      <tr>
+        <td><code>GET /api/users</code></td>
+        <td>200 OK</td>
+        <td>Returns JSON array of all registered users (or empty array).</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="page-break"></div>
+
+  <!-- Section 3 -->
+  <h2>3. Detailed Frontend Logic (Flutter & Dart)</h2>
+
+  <h3>3.1 Networking & Addressing Strategy</h3>
+  <p>
+    Mobile OS networking differs significantly from standard desktop web development. The <code>ApiConfig</code> class abstracts this logic:
+  </p>
+  <ul>
+    <li><strong>Android Emulator:</strong> Routes to <code>http://10.0.2.2:5000</code> because the emulator runs inside a virtual router where <code>10.0.2.2</code> aliases the host PC's loopback interface.</li>
+    <li><strong>Physical Android Devices:</strong> Connects to <code>http://&lt;PC_LAN_IP&gt;:5000</code> over the local Wi-Fi router.</li>
+    <li><strong>Why Localhost Fails on Mobile:</strong> In Android, <code>localhost</code> (127.0.0.1) resolves to the smartphone's internal loopback interface, completely missing the host computer's backend server.</li>
+  </ul>
+
+  <h3>3.2 UI State Machine in <code>HomeScreen</code></h3>
+  <p>
+    The user interface implements a reactive state machine managed by Flutter's <code>StatefulWidget</code> lifecycle:
+  </p>
+
+  <div class="flow-step">
+    <div class="flow-num">1</div>
+    <div class="flow-text">
+      <div class="flow-title">Client-Side Validation Phase</div>
+      <div class="flow-desc">Form field controllers and <code>GlobalKey&lt;FormState&gt;</code> perform instant client-side checks for name length, email format, and phone structure.</div>
+    </div>
+  </div>
+
+  <div class="flow-step">
+    <div class="flow-num">2</div>
+    <div class="flow-text">
+      <div class="flow-title">Async Submission & Progress Locking</div>
+      <div class="flow-desc">When submitted, <code>_isRegistering</code> is set to true. The button swaps its icon for an emerald <code>CircularProgressIndicator</code> and locks user inputs to prevent duplicate submissions.</div>
+    </div>
+  </div>
+
+  <div class="flow-step">
+    <div class="flow-num">3</div>
+    <div class="flow-text">
+      <div class="flow-title">User Directory Multi-State Handling</div>
+      <div class="flow-desc">
+        The <strong>Users List</strong> tab handles 4 distinct visual states:
+        <strong>(A) Loading:</strong> shimmer/spinner;
+        <strong>(B) Error:</strong> cloud-off illustration with detailed error text & retry button;
+        <strong>(C) Empty:</strong> clean inbox icon with a 1-tap shortcut to registration;
+        <strong>(D) Populated:</strong> scrollable card list with generated avatar initials, contact rows, and pull-to-refresh.
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 4 -->
+  <h2>4. Android Native Layer & Toolchain Integration</h2>
+
+  <h3>4.1 Cleartext Traffic & Permissions</h3>
+  <p>
+    Modern Android releases (Android 9 / API 28 and above) block cleartext HTTP network traffic by default for security. In <code>frontend/android/app/src/main/AndroidManifest.xml</code>:
+  </p>
+  <pre><code>&lt;uses-permission android:name="android.permission.INTERNET" /&gt;
+&lt;uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" /&gt;
+&lt;application
+    android:label="BasicUserApp"
+    android:usesCleartextTraffic="true"&gt;</code></pre>
+  <p>
+    Setting <code>android:usesCleartextTraffic="true"</code> permits the mobile app to communicate with local development servers over unencrypted HTTP without requiring SSL certificates during prototyping.
+  </p>
+
+  <h3>4.2 Build Alignment & NDK Configuration</h3>
+  <p>
+    In <code>frontend/android/app/build.gradle.kts</code>, the NDK was explicitly aligned with the system's installed NDK toolchain (<code>ndkVersion = "30.0.16248370"</code>). Release signing was mapped to <code>signingConfigs.getByName("debug")</code>, allowing immediate compilation into an installable release package:
+  </p>
+  <pre><code>C:\Users\SRIRA\BasicUserApp\frontend\build\app\outputs\flutter-apk\app-release.apk</code></pre>
+
+  <!-- Section 5 -->
+  <h2>5. Security & Risk Assessment Summary</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Component</th>
+        <th>Current State</th>
+        <th>Risk Level</th>
+        <th>Recommended Production Path</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>APK Installation</strong></td>
+        <td>Debug-signed release build</td>
+        <td>Zero (Safe)</td>
+        <td>Sign with production keystore and distribute via Google Play Store.</td>
+      </tr>
+      <tr>
+        <td><strong>Firewall Port 5000</strong></td>
+        <td>Open on local network</td>
+        <td>Low on Home Wi-Fi</td>
+        <td>Close port after testing or use reverse proxy like Nginx.</td>
+      </tr>
+      <tr>
+        <td><strong>JSON File Store</strong></td>
+        <td>Plain-text on disk</td>
+        <td>Acceptable for Demo</td>
+        <td>Migrate to PostgreSQL or MongoDB with encrypted connections.</td>
+      </tr>
+      <tr>
+        <td><strong>HTTP Cleartext</strong></td>
+        <td>Unencrypted on LAN</td>
+        <td>Low on Private LAN</td>
+        <td>Enforce HTTPS with valid SSL/TLS certificates on public domains.</td>
+      </tr>
+    </tbody>
+  </table>
+
+</body>
+</html>
+
