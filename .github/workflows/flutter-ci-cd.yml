@@ -52,6 +52,7 @@ jobs:
   flutter-build:
     name: Flutter analyze, test and Android build
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -72,26 +73,29 @@ jobs:
       - name: Configure Android release signing
         working-directory: frontend/android
         env:
-          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          if [ -n "$ANDROID_KEYSTORE_BASE64" ]; then
-            echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > app/upload-keystore.jks
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            printf '%s' "$KEYSTORE_BASE64" | base64 --decode > app/upload-keystore.jks
+
             cat > key.properties <<EOF
           storeFile=app/upload-keystore.jks
-          storePassword=$ANDROID_KEYSTORE_PASSWORD
-          keyAlias=$ANDROID_KEY_ALIAS
-          keyPassword=$ANDROID_KEY_PASSWORD
+          storePassword=$KEYSTORE_PASSWORD
+          keyAlias=$KEY_ALIAS
+          keyPassword=$KEY_PASSWORD
           EOF
-            echo "Release signing configured."
-          elif [[ "$GITHUB_REF" == refs/tags/v* ]]; then
-            echo "ERROR: Android signing secrets are required for version-tag releases."
-            echo "Configure the same keystore that signed the APK already installed by users."
+
+            echo "Original APK signing key configured."
+
+          elif [[ "$GITHUB_REF" == refs/heads/main || "$GITHUB_REF" == refs/tags/v* ]]; then
+            echo "ERROR: Signing secrets are required for main branch and release builds."
             exit 1
+
           else
-            echo "Release keystore secrets are missing. Building a debug-signed CI artifact only; it may not update existing installations."
+            echo "Pull request build: using debug signing because repository secrets may be unavailable."
           fi
 
       - name: Install Flutter dependencies
@@ -113,10 +117,12 @@ jobs:
         run: |
           APP_VERSION="$(sed -n 's/^version: \([0-9.]*\)+[0-9]*/\1/p' pubspec.yaml)"
           APP_BUILD_NUMBER="$(sed -n 's/^version: [0-9.]*+\([0-9]*\)/\1/p' pubspec.yaml)"
+
           if [ -z "$APP_VERSION" ] || [ -z "$APP_BUILD_NUMBER" ]; then
             echo "Could not read version from frontend/pubspec.yaml"
             exit 1
           fi
+
           echo "version=$APP_VERSION" >> "$GITHUB_OUTPUT"
           echo "build_number=$APP_BUILD_NUMBER" >> "$GITHUB_OUTPUT"
 
@@ -132,8 +138,10 @@ jobs:
       - name: Rename APK with version
         run: |
           mkdir -p release
+
           cp frontend/build/app/outputs/flutter-apk/app-release.apk \
             "release/BasicUserApp-${{ steps.app_version.outputs.version }}+${{ steps.app_version.outputs.build_number }}.apk"
+
           cp frontend/build/app/outputs/flutter-apk/app-release.apk release/app-release.apk
 
       - name: Upload APK build artifact
